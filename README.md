@@ -154,27 +154,37 @@ systemctl restart NetworkManager
 
 На хосте testClient2 требуется создать файл /etc/netplan/50-cloud-init.yaml со следующим параметрами:
 
-# This file is generated from information provided by the datasource.  Changes
-# to it will not persist across an instance reboot.  To disable cloud-init's
-# network configuration capabilities, write a file
-# /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg with the following:
-# network: {config: disabled}
-network:
-    version: 2
-    ethernets:
-        enp0s3:
-            dhcp4: true
-        #В разделе ethernets добавляем порт, на котором будем настраивать VLAN
-        enp0s8: {}
-    #Настройка VLAN
-    vlans:
-        #Имя VLANа
-        vlan2:
-          #Указываем номер VLAN`а
-          id: 2
-          #Имя физического интерфейса
-          link: enp0s8
-          #Отключение DHCP-клиента
-          dhcp4: no
-          #Указываем ip-адрес
-          addresses: [10.10.10.254/24]
+<img width="839" height="459" alt="image" src="https://github.com/user-attachments/assets/f5e7bc34-1f78-4404-a6b8-ae5ab4d9d724" />
+
+<img width="915" height="533" alt="image" src="https://github.com/user-attachments/assets/8e9eaf86-ca3a-409f-939d-0adf5530927b" />
+
+
+
+После настройки второго VLAN`а ping должен работать между хостами testClient1, testServer1 и между хостами testClient2, testServer2.
+
+<img width="932" height="574" alt="image" src="https://github.com/user-attachments/assets/5d294a1b-a6d3-4ead-906e-d14408181d0f" />
+
+
+<img width="1130" height="502" alt="image" src="https://github.com/user-attachments/assets/c88d2ec3-4311-4d26-b72e-240e62f5b537" />
+
+# Настройка LACP между хостами inetRouter и centralRouter
+
+
+Изначально необходимо на обоих хостах добавить конфигурационные файлы для интерфейсов eth1 и eth2:
+
+<img width="1103" height="517" alt="image" src="https://github.com/user-attachments/assets/a7e7a3b0-9649-4968-81d9-3855a6c2ce31" />
+
+После настройки интерфейсов eth1 и eth2 нужно настроить bond-интерфейс, для этого создадим файл /etc/sysconfig/network-scripts/ifcfg-bond0
+
+<img width="888" height="330" alt="image" src="https://github.com/user-attachments/assets/2c313e56-53e7-49d9-b180-08a7659da416" />
+
+На некоторых версиях RHEL/CentOS перезапуск сетевого интерфейса не запустит bond-интерфейс, в этом случае рекомендуется перезапустить хост.
+
+После настройки агрегации портов, необходимо проверить работу bond-интерфейса, для этого, на хосте inetRouter (192.168.255.1) запустим ping до centralRouter (192.168.255.2):
+
+<img width="1961" height="618" alt="image" src="https://github.com/user-attachments/assets/24ba077b-c3f7-470f-85e6-08afac19b060" />
+
+
+Не отменяя ping подключаемся к хосту centralRouter и выключаем там интерфейс eth1: 
+
+
